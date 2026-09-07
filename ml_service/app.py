@@ -12,7 +12,7 @@ DATASET_PATH = os.path.join(os.path.dirname(__file__), "dataset.csv")
 @app.route("/")
 def home():
     return{
-        "status":"success"'
+        "status":"success"
         "message":"Digital Crime ML Service is running"
     }
 # Initialize dataset if not existing
