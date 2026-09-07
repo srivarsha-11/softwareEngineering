@@ -12,10 +12,32 @@ const PORT = process.env.PORT || 3001;
 const RAW_PYTHON_URL = process.env.ML_SERVICE_URL || process.env.PYTHON_ML_URL || 'https://digital-crime-ml.onrender.com';
 const PYTHON_ML_URL = RAW_PYTHON_URL.replace(/\/$/, '');
 
-// CORS configuration
+// CORS configuration for Vercel Frontend & Local Development
 const FRONTEND_URL = process.env.FRONTEND_URL;
+const allowedOrigins = [
+  'https://client-3tq4k8cl1-srivarsha.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173'
+];
+if (FRONTEND_URL) {
+  allowedOrigins.push(FRONTEND_URL.replace(/\/$/, ''));
+}
+
 app.use(cors({
-  origin: FRONTEND_URL ? [FRONTEND_URL, 'http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'] : '*',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. server-to-server, curl, health checks)
+    if (!origin) return callback(null, true);
+    
+    if (
+      allowedOrigins.includes(origin) ||
+      /\.vercel\.app$/.test(origin) ||
+      /\.onrender\.com$/.test(origin)
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
