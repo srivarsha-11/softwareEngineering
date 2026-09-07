@@ -1,0 +1,25 @@
+{
+  "name": "digital-crime-ai-ml-project",
+  "version": "1.0.0",
+  "description": "Digital Crime Machine Learning Intelligence Application - End-to-End Cyber Forensics System",
+  "main": "start.js",
+  "scripts": {
+    "start": "node start.js",
+    "dev": "node start.js",
+    "start:client": "cd client && npm run dev",
+    "start:server": "cd server && node server.js",
+    "start:ml": ".\\venv\\Scripts\\python ml_service\\app.py",
+    "build": "cd client && npm run build"
+  },
+  "keywords": [
+    "machine-learning",
+    "cyber-forensics",
+    "digital-crime",
+    "scikit-learn",
+    "react",
+    "express",
+    "flask"
+  ],
+  "author": "Cyber Forensics AI Team",
+  "license": "MIT"
+}
