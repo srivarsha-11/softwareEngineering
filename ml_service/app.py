@@ -9,12 +9,7 @@ app = Flask(__name__)
 CORS(app)
 
 DATASET_PATH = os.path.join(os.path.dirname(__file__), "dataset.csv")
-@app.route("/")
-def home():
-    return{
-        "status":"success"
-        "message":"Digital Crime ML Service is running"
-    }
+
 # Initialize dataset if not existing
 def get_dataset():
     if not os.path.exists(DATASET_PATH):
