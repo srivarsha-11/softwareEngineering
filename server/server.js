@@ -7,13 +7,38 @@ const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const PYTHON_ML_URL = process.env.PYTHON_ML_URL || 'http://127.0.0.1:5000';
 
-app.use(cors());
+// ML Service URL configuration (defaults to deployed Render Python ML service)
+const RAW_PYTHON_URL = process.env.ML_SERVICE_URL || process.env.PYTHON_ML_URL || 'https://digital-crime-ml.onrender.com';
+const PYTHON_ML_URL = RAW_PYTHON_URL.replace(/\/$/, '');
+
+// CORS configuration
+const FRONTEND_URL = process.env.FRONTEND_URL;
+app.use(cors({
+  origin: FRONTEND_URL ? [FRONTEND_URL, 'http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'] : '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 const upload = multer({ dest: 'uploads/' });
+
+// Root & Health check endpoints for Render deployment monitoring
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    service: 'Digital Crime Express API Gateway',
+    ml_service_url: PYTHON_ML_URL,
+    version: '1.0.0'
+  });
+});
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy', service: 'Digital Crime Express API Gateway' });
+});
 
 // Helper to proxy requests to Python ML Service with seamless fallback
 async function proxyOrFallback(endpoint, method, payload = {}, fallbackFn) {
@@ -21,13 +46,13 @@ async function proxyOrFallback(endpoint, method, payload = {}, fallbackFn) {
     const url = `${PYTHON_ML_URL}${endpoint}`;
     let res;
     if (method.toUpperCase() === 'POST') {
-      res = await axios.post(url, payload, { timeout: 4000 });
+      res = await axios.post(url, payload, { timeout: 15000 });
     } else {
-      res = await axios.get(url, { timeout: 4000 });
+      res = await axios.get(url, { timeout: 15000 });
     }
     return res.data;
   } catch (err) {
-    console.log(`[ML Gateway] Python service unreachable on ${endpoint}, returning fallback response.`);
+    console.log(`[ML Gateway] Python service warning on ${endpoint} (${err.message}). Returning fallback response.`);
     return fallbackFn();
   }
 }
@@ -307,6 +332,16 @@ app.post('/api/ml/upload-dataset', upload.single('dataset'), async (req, res) =>
     console.error("[Upload Error]", err);
     res.status(500).json({ error: "Failed to process uploaded dataset file" });
   }
+});
+
+// GET DATASET RECORDS
+app.get('/api/ml/dataset', async (req, res) => {
+  const result = await proxyOrFallback('/api/ml/dataset', 'GET', {}, () => ({
+    total_records: 1000,
+    columns: ["incident_id", "crime_type", "attack_method", "severity", "financial_impact_usd", "location", "risk_score"],
+    sample: []
+  }));
+  res.json(result);
 });
 
 

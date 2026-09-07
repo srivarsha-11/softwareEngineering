@@ -21,6 +21,15 @@ def get_dataset():
 
 ml = MLPipeline()
 
+@app.route('/', methods=['GET'])
+def index():
+    return jsonify({
+        "status": "healthy",
+        "service": "Digital Crime Python ML Microservice",
+        "message": "Python ML Microservice is online and ready",
+        "version": "1.0.0"
+    })
+
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({"status": "healthy", "service": "Python ML Microservice", "version": "1.0.0"})
@@ -135,6 +144,7 @@ if __name__ == '__main__':
     df_initial = get_dataset() # Pre-generate dataset
     df_clean_init, _ = ml.preprocess(df_initial)
     ml.train_classifier(df_clean_init, target_col='severity', algorithm='Random Forest')
-    print("Starting Python ML Microservice on port 5000...")
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    port = int(os.environ.get("PORT", 5000))
+    print(f"Starting Python ML Microservice on port {port}...")
+    app.run(host='0.0.0.0', port=port, debug=False)
 

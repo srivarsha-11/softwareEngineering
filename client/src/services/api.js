@@ -1,13 +1,16 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:3001/api/ml';
+// Dynamically resolve backend base URL with fallback to deployed Render service
+const RAW_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || 'https://digital-crime-server.onrender.com';
+const BACKEND_URL = RAW_BACKEND_URL.replace(/\/$/, '');
+const API_BASE = `${BACKEND_URL}/api/ml`;
 
 const api = axios.create({
   baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: 20000,
 });
 
 export const mlService = {
@@ -63,7 +66,7 @@ export const mlService = {
   uploadDataset: async (file) => {
     const formData = new FormData();
     formData.append('dataset', file);
-    const res = await axios.post(`${API_BASE}/upload-dataset`, formData, {
+    const res = await api.post('/upload-dataset', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return res.data;
